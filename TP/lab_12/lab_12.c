@@ -57,7 +57,7 @@ void readTime(char *time) {
 
 // Функция для считывания информации о клубе
 struct Club readClubInfo() {
-  struct Club club;
+  struct Club club = {0};
   int c;
   while ((c = getchar()) != '\n' && c != EOF)
     ;
@@ -189,6 +189,8 @@ void loadClubsFromFile(struct Club **clubs, int *clubCount,
       *clubCount = tempCount;
       printf("Данные загружены из файла %s\n", filename);
     }
+    if (tempClubs)
+      free(tempClubs);
   } else {
     printf("Ошибка открытия файла для чтения\n");
   }
