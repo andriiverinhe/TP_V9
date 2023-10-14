@@ -4,9 +4,9 @@
 #include <string.h>
 
 struct Club {
-  char name[100];
-  char address[100];
-  char theme[100];
+  char name[1000];
+  char address[1000];
+  char theme[1000];
   char openingTime[10];
   char closingTime[10];
   int hasKaraoke;
@@ -128,16 +128,17 @@ void setBufNull(char *buff, int size) {
     buff[i] = '\0';
 }
 // Функция для загрузки данных о клубах из файла
-void loadClubsFromFile(struct Club **clubs, int *clubCount,
-                       const char *filename) {
+int loadClubsFromFile(struct Club *clubs, int *clubCount,
+                       const char *filename, int *capacity) {
+
   FILE *file = fopen(filename, "r");
   if (file) {
-    struct Club *tempClubs = NULL;
-    int tempCount = 0;
+    // struct Club *tempClubs = NULL;
+    // int tempCount = 0;
     char buffer[1000]; // Буфер для чтения строк из файла
     setBufNull(buffer, 1000);
-    struct Club club;
 
+    struct Club club = {0};
     while (fgets(buffer, sizeof(buffer), file)) {
       if (strstr(buffer, "Название: ")) {
         sscanf(buffer, "Название: %99[^\n]", club.name);
@@ -163,37 +164,25 @@ void loadClubsFromFile(struct Club **clubs, int *clubCount,
         sscanf(buffer, "Караоке: %4[^\n]", buffer);
 
         club.hasKaraoke = (strcmp(buffer, "Да") == 0) ? 1 : 0;
-
-        tempCount++;
-        if (tempCount == 1) {
-          tempClubs = (struct Club *)malloc(sizeof(struct Club));
-        } else {
-          tempClubs = (struct Club *)realloc(tempClubs,
-                                             tempCount * sizeof(struct Club));
+        if(*clubCount == *capacity) {
+          *capacity *= 2;
+          clubs = (struct Club *)realloc(clubs, *capacity * sizeof(struct Club));
+          if (!(clubs)) {
+            fprintf(stderr, "Ошибка выделения памяти\n");
+            return 1;
+          }
         }
-
-        if (tempClubs) {
-          tempClubs[tempCount - 1] = club;
-        } else {
-          printf("Ошибка выделения памяти\n");
-          break;
-        }
+        if(clubs)
+          (clubs[(*clubCount)]) = club;
+        (*clubCount)++;
       }
     }
 
     fclose(file);
-    if (tempClubs) {
-      if (*clubs)
-        free(*clubs); // Освобождение предыдущей памяти, если она была выделена
-      *clubs = tempClubs;
-      *clubCount = tempCount;
-      printf("Данные загружены из файла %s\n", filename);
-    }
-    if (tempClubs)
-      free(tempClubs);
   } else {
     printf("Ошибка открытия файла для чтения\n");
   }
+  return 0;
 }
 
 int main() {
@@ -209,7 +198,8 @@ int main() {
       "./lab_12/clubs.txt"; // Имя файла для сохранения и загрузки данных
 
   // Загрузка данных из файла при запуске программы
-  loadClubsFromFile(&clubs, &clubCount, filename);
+  if(loadClubsFromFile(clubs, &clubCount, filename, &capacity))
+    return 1;
 
   while (1) {
     printf("\nМеню:\n");
@@ -298,6 +288,7 @@ int main() {
       saveClubsToFile(clubs, clubCount, filename);
       if (clubs)
         free(clubs); // Освобождение памяти
+
       return 0;
     default:
       int c;
