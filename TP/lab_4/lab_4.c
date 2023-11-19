@@ -61,7 +61,7 @@ int main() {
     printf("Control value: %.6lf\n", CONTROL_VALUE);
 
     // Проверка на близость к контрольному значению
-    if (fabs(integral - CONTROL_VALUE) < accuracy)
+    if (fabs(integral - CONTROL_VALUE) < 0.001)
       printf("The integral is close to the control value.\n");
     else
       printf("The integral is not close to the control value.\n");
